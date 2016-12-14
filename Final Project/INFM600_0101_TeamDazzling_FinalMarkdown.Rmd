@@ -1,0 +1,305 @@
+
+<b><div align="Centre">
+  <font size="5">Team Dazzling</font>
+  
+</div><div align="Centre">
+ <font size="6">Git Repository</font> 
+</div>
+
+</b>
+
+<b><div align="Centre">
+  <font size="5">Data Cleaning</font></b>
+  
+<b><div align="Centre">
+  <font size="3">COST</font></b>
+
+Medicare Hospital Spending by Claim.csv
+
+<ul>
+  <li>Filtered non-relevant states (only DC and VA)</li>
+  <li>Filtered the period to "Complete Episode" only</li>
+  <li>Dropped all columns except the following:
+  <ul>
+<li>Hospital Name</li>
+<li>Provider Number</li>
+<li>State</li>
+<li>Claim Type</li>
+<li>Average Spending per Episode (Hospital)</li>
+</ul></li>
+<li>Used R to plot the average spending for the entire state</li>
+</ul>
+
+<b><div align="Centre">
+  <font size="3">PROCESS + PATIENT EXPERIENCE</font></b>
+
+Medicare Hospital Spending by Claim.csv
+
+<ul>
+  <li>Filtered non-relevant states (only DC and VA)</li>
+  <li>Filtered the "HCAHPS Question" column to include all questions besides "Summary star rating"</li>
+  <li>Filtered out all "Not applicable" and "Not available" responses</li>
+  <li>Dropped all columns except the following:
+  <ul>
+<li>Hospital Name</li>
+<li>Provider Number</li>
+<li>State</li>
+<li>Measure ID</li>
+<li>HCAHPS Question (Hospital)</li>
+<li>Patient Survey Star Rating</li>
+</ul></li>
+<li>Used R to plot the averaged scores between DC and Virginia for each of the Measure categories</li>
+</ul>
+
+
+<b><div align="Centre">
+  <font size="3">OUTCOME</font></b>
+
+Complications - Hospital.csv
+
+<ul>
+  <li>Filtered non-relevant states (only DC and VA)</li>
+  <li>Filtered the "HCAHPS Question" column to include all questions besides "Summary star rating"</li>
+  <li>Filtered out all "Measure Name" categories besides:</li>
+  <ul>
+  <li>Accidental cuts and tears from medical treatment</li>
+  <li>Deaths among Patients with Serious Treatable Complications after Surgery</li>
+  <li>Serious complications</li>
+  </ul>
+  <li>Filtered out all "Score" rows that are "Not Available"</li>
+  <li>Dropped all columns except the following:
+  <ul>
+<li>Hospital Name</li>
+<li>Provider Number</li>
+<li>State</li>
+<li>Measure Name</li>
+<li>Score (usually the mean of "Lower Estimate" and "Higher Estimate")</li>
+</ul></li>
+<li>Used R to plot the average scores for each "Measure Name" category between DC and Virginia</li>
+</ul>
+
+
+<b><div align="Centre">
+  <font size="5">Analysis Script</font></b>
+  
+  
+```{r}
+#-Question:Does higher spending per claim correlate with higher quality of care at Medicare-certified hospitals in Virginia and Washington D.C.?
+#--To answer this question we look at the data availabe in spendingsbyclaimtype.csv. 
+#--The variable to consider here is average spending per episode which measures the money's worth.This is the dependent variable. The variable is of the ratio scale
+#--Filter out the data for the column Period by using only values for Complete Episode and removing the values that are blank or not applicable.
+#--In this dataset we only take the spending for the states 'VA' and 'DC'
+
+spending=read.csv(file="C:/Users/Arpit/Desktop/Medicare Hospital Spending by Impatient Claim Type (DC&VA only).xlsx - Sheet1.csv")
+#--This is the command to read a csv file in R. Spending is the variable that stores spendingbyclaim.csv dataset.
+
+head(spending)
+#--The command displays the first 6 rows of the dataset.
+
+hist(spending$Avg)
+#The distribution of the variable is skewed. Hence the central tendency we measure for the variable is median
+
+medianofspending=aggregate(spending$Avg,by=list(state=spending$State),FUN = function(x) c(median=median(x)))
+#--State wise data is aggregated based on median of the average spending per episode.
+
+print(medianofspending)
+#--This command displays the value of median per state.
+
+summaryofspending=aggregate(spending$Avg,by=list(state=spending$State),FUN = function(x) c(summary=summary(x)))
+#--this gets the descriptive stats for average spending per episode(min,max,1stand 3rd quartile,mean and median) grouped by the state.
+
+print(summaryofspending)
+#--This command displays the summary per state.
+
+sdofspending=aggregate(spending$Avg,by=list(state=spending$State),FUN = function(x) c(sd=sd(x)))
+#--State wise data of standard deviation of average spending per episode.
+
+print(sdofspending)
+#--This command displays the standard deviation of average spending per episode for state.
+
+
+
+```
+
+```{r}
+#--complicationsdata.csv contains Independent Variable, score, which use to measure for high quality care.
+#--The variable is of the ratio scale.
+#--Filter out the data by removing all the blank, not available and not applicable values from the score column. 
+#--In this dataset we only take the score for the states 'VA' and 'DC'
+
+complications=read.csv(file="C:/Users/Arpit/Desktop/clean_complications-data.xlsx - Sheet1.csv")
+#--This is the command to read a csv file in R. Complications is the variable that stores complicationsdata.csv dataset.
+
+head(complications)
+#--The command displays the first 6 rows of the dataset.
+
+hist(complications$Score)
+#The distribution of the variable is skewed. Hence the central tendency we measure for the variable is median
+
+medianofcomplications=aggregate(complications$Score,by=list(state=complications$State,measure=complications$MeasureName),FUN = function(x) c(median=median(x)))
+#--State and measure name wise data is aggregated based on median of the score.
+
+print(medianofcomplications)
+#--This command displays the value of median of score per state and measure name.
+
+summaryofcomplications=aggregate(complications$Score,by=list(state=complications$State,measure=complications$MeasureName),FUN = function(x) c(summary=summary(x)))
+#--this gets the descriptive stats for score(min,max,1stand 3rd quartile,mean and median) grouped by the state.
+
+print(summaryofcomplications)
+#--This command displays the summary per state.
+
+sdofcomplication=aggregate(complications$Score,by=list(State=complications$State),FUN = function(x) c(sd=sd(x)))
+#--State wise data of standard deviation of score.
+
+print(sdofcomplication)
+#--This command displays the standard deviation of score per state.
+```
+
+```{r}
+#--hcahps.csv contains Independent Variable, survery star rating, which use to measure for high quality care.
+#--The variable is of the interval scale(likert scale which is considered as interval in this case).
+#--Filter out the data by removing all the blank, not available and not applicable values from the score column. 
+#--In this dataset we only take the survey rating for the states 'VA' and 'DC'
+
+hcahps=read.csv(file="C:/Users/Arpit/Desktop/HCAHPS.csv")
+#--This is the command to read a csv file in R. X is the variable that stores hcahps.csv dataset.
+
+head(hcahps)
+#--The command displays the first 6 rows of the dataset.
+
+hist(hcahps$Patient.Survey.Star.Rating)#-- Checking whether to take mean or median based on symmetry.
+# The distribution for the variable looks normal, therefore the central tendncy we measure is mean
+
+hcahpsmean=aggregate(hcahps$Patient.Survey.Star.Rating,by=list(state=hcahps$State,measure=hcahps$HCAHPS.Measure.ID),FUN = function(x) c(mean=mean(x)))
+#--State and measure ID wise data is aggregated based on mean of the survey star rating.
+
+print(hcahpsmean)
+#--This command displays the value of mean of survey star rating per state.
+
+hcahpssummary=aggregate(hcahps$Patient.Survey.Star.Rating,by=list(state=hcahps$State,measure=hcahps$HCAHPS.Measure.ID),FUN = function(x) c(summary=summary(x)))
+#--this gets the descriptive stats for survey star rating(min,max,1stand 3rd quartile,mean and median) grouped by the state.
+
+print(hcahpssummary)
+#--This command displays the summary per state.
+
+sdofhcahps=aggregate(hcahps$Patient.Survey.Star.Rating,by=list(State=hcahps$State),FUN = function(x) c(sd=sd(x)))
+#--State wise data of standard deviation of survey star rating.
+
+print(sdofhcahps)
+#--This command displays the standard deviation of survey star rating.
+
+
+```
+
+<b><div align="Centre">
+  <font size="5">Outputs(R plots)</font></b>
+  
+  
+```{r}
+spending=read.csv(file="C:/Users/Arpit/Desktop/Medicare Hospital Spending by Impatient Claim Type (DC&VA only).xlsx - Sheet1.csv")
+#--This is the command to read a csv file in R. X is the variable that stores spendingbyclaim.csv dataset.
+spending_sum<-tapply(spending$Avg,list(spending$State),FUN = mean)
+barplot(spending_sum, main = "Mean of Spending Per state", xlab = "State", ylab = "Mean of Cost/Episode",ylim = c(0, 20000), names.arg = c("DC", "VA"))
+
+```
+
+```{r}
+library(ggplot2)
+library(reshape)
+library(extrafont)
+hcahps=read.csv(file="C:/Users/Arpit/Desktop/HCAHPS.csv")
+counts_sum<-tapply(hcahps$Patient.Survey.Star.Rating,list(hcahps$State,hcahps$HCAHPS.Measure.ID),FUN = mean)
+#grouping by state
+Names= c("VA","DC")
+data.sum<- melt(counts_sum,id.vars='Names')
+#Melting to reshape the data
+colnames(data.sum) = c("state","variable","value")
+font_import(pattern = "[X/x]kcd", prompt = FALSE)
+#xkcd command for font
+fonts()
+loadfonts(device = "win")
+ggplot(data.sum,aes(x=variable,y=value,width=0.75))  + geom_bar(stat="identity",aes(fill=state),position="dodge") + ggtitle("HCAHPS") + xlab("Measure_Names")+ylab("Ratings")+ coord_flip() + theme(text=element_text(family = "xkcd"))
+```
+
+```{r}
+library(ggplot2)
+library(reshape)
+accidental=read.csv(file="C://Users//Arpit//Desktop//accidental.csv")
+accidental_mean<-tapply(accidental$Score,list(accidental$State,accidental$Measure.Name),FUN = mean)
+Names= c("VA","DC")
+datasum1<- melt(accidental_mean,id.vars='Names')
+colnames(datasum1) = c("state","variable","score")
+ggplot(datasum1,aes(x=variable,y=score,width=0.75))  + geom_bar(stat="identity",aes(fill=state),position="dodge") + ggtitle("Complications in Hospital") + xlab("Measure_Names")+ylab("Score")
+```
+
+```{r}
+library(ggplot2)
+library(reshape)
+serious=read.csv(file="C://Users//Arpit//Desktop//serious.csv")
+serious_mean<-tapply(serious$Score,list(serious$State,serious$Measure.Name),FUN = mean)
+Names= c("VA","DC")
+datasum1<- melt(serious_mean,id.vars='Names')
+colnames(datasum1) = c("state","variable","score")
+ggplot(datasum1,aes(x=variable,y=score,width=0.75))  + geom_bar(stat="identity",aes(fill=state),position="dodge") + ggtitle("Complications in Hospital") + xlab("Measure_Names")+ylab("Score")
+
+```
+
+```{r}
+library(ggplot2)
+library(reshape)
+deaths=read.csv(file="C://Users//Arpit//Desktop//deaths.csv")
+deaths_mean<-tapply(deaths$Score,list(deaths$State,deaths$Measure.Name),FUN = mean)
+Names= c("VA","DC")
+datasum1<- melt(deaths_mean,id.vars='Names')
+colnames(datasum1) = c("state","variable","score")
+ggplot(datasum1,aes(x=variable,y=score,width=0.75))  + geom_bar(stat="identity",aes(fill=state),position="dodge") + ggtitle("Complications in Hospital") + xlab("Measure_Names")+ylab("Score")
+```
+
+<b><div align="Centre">
+  <font size="5">Summary</font></b>
+  
+<b><div align="Centre">
+  <font size="3">Introduction</font></b>
+  
+Since 1966, millions of Americans have made use of Medicare-a national social insurance program administered by the United States federal government. Recognizing that quality of care varies across state lines, the Center for Medicare and Medicaid Services (CMS) has sought to make critical information available to recipients who plan to receive care at Medicare-certified hospitals so that they can make informed decisions. By analyzing some of this information, our research group hopes to answer the following question:
+
+<p>"Does higher spending per claim correlate with higher quality of care at Medicare-certified hospitals in Virginia and Washington D.C.?"</p>
+
+After analyzing the available data, we hope to provide more information to Medicare recipients in Virginia and Washington D.C. to encourage informed decision-making when choosing a hospital.
+
+<b><div align="Centre">
+  <font size="3">Target Audience</font></b>
+
+This research topic targets primarily Americans who use Medicare as their primary health insurance provider. American citizens or permanent residents who are of ages 65 or older, as well as some younger people who receive Social Security Disability Insurance (SSDI) benefits or suffer from certain diseases, are eligible for Medicare Part A (hospital insurance) and Part B (Medicare insurance) coverage. Most Americans who qualify for Medicare receive Part A coverage premium-free; however, all Americans must pay premiums for Part B coverage if they choose to enroll.
+Given that the data collected for this analysis was collected from Medicare-certified hospitals in Virginia and D.C., our results and implications should be of particular concern to Medicare Part A recipients. Americans relying on Medicare for their hospital insurance deserve to be aware of the quality of care and efficiency of Medicare-certified hospitals where they live.
+
+<b><div align="Centre">
+  <font size="3">Source Data</font></b>
+
+The source data used in this analysis was collected from data.medicare.gov, a public website which provides direct access to the official data from the Centers for Medicare and Medicaid Services (CMS). According to CMS, the purpose of the website is to make "CMS data readily available in open, accessible, and machine-readable formats". Within this dataset, we used several tables provided in the "Hospital Compare Dataset", which provides data on the quality of care provided at more than 4,000 Medicare-certified hospitals across the country. All datasets provided at data.medicare.gov are declared as works of the U.S. government and placed within the public domain. Attribution of the agency is requested; however, users are notified that any products developed using the CMS datasets should not give a false impression of government-endorsement.
+Within the "Hospital Compare Dataset", our analysis involved three specific tables of data stored within CSV files:
+
+
+     1. Medicare Hospital Spending By Claim
+     2. HCAHPS
+     3. Complications - Hospital
+
+
+The first dataset provides comparative data on spending rates per episode for each of the more than 4,000 Medicare-certified hospitals across the country. After filtering out all non-relevant states, we used R to plot the average total spending for both D.C. and Virginia. The second dataset contains response data for patient-satisfaction surveys completed at Medicare-certified hospitals. For this dataset, we again used R to plot the mean scores for each of the measures recorded in the HCAHPS surveys in Virginia and D.C. Finally, using the complications dataset, we compared the scores provided for three specific complications (accidental cuts and tears, deaths among patients, and other "serious complications") between D.C. and Virginia Medicare-certified hospitals.
+Overall, these three analyses tell us the average spending per episode, patient-satisfaction scores, and comparative performance figures for Medicare-certified hospitals in D.C. and Virginia. Using this information, Medicare recipients might make informed decisions on where to receive medical treatment using their Medicare Part A coverage.
+
+<b><div align="Centre">
+  <font size="3">Plot</font></b>
+  
+  ![Figure1](spending.png)
+   
+   ![Figure2](Hcahps.png)
+
+<b><div align="Centre">
+  <font size="3">Interpretation</font></b>
+The two plots above show the average spending per claim as well as the score averages for various measures contained within the HCAHPS survey responses for Washington D.C. and Virginia hospitals. Although we originally expected to see higher spending associated with higher quality of care, our results show the opposite. Washington D.C. hospitals show higher spending than their Virginia counterparts, but lower average scores for every single survey question. Although there are flaws in our approach (such as issues with sampling sizes) and these survey responses are subjective, our comparative analysis does raise questions regarding efficiency and performance in D.C. and Virginia hospitals.
+
+<b><div align="Centre">
+  <font size="3">Recommendation</font></b>
+
+Given the differences in reported quality of care between Washington D.C. and Virginia Medicare-certified hospitals, prospective patients should be aware that certain hospitals may provide better care than others. Overall, our analysis demonstrated significantly higher patient satisfaction ratings and outcomes regardless of spending rates, which means that patients may want to consider giving preference to Virginia-based Medicare facilities rather than their D.C. counterparts.
